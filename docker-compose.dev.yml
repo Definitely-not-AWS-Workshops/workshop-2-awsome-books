@@ -1,0 +1,48 @@
+version: "3.8"
+services:
+
+  awsome-books:
+    container_name: awsome-books
+    build:
+      context: .
+      target: production
+    ports:
+      - 8080:8080
+    # environment:
+    
+    #   - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/awsome_books
+    #   - SPRING_DATASOURCE_USERNAME=dev-postgres
+    #   - SPRING_DATASOURCE_PASSWORD=dev-postgres
+    #   - SPRING_PROFILES_ACTIVE=dev
+    # develop:
+    #   watch:
+    #     - action: rebuild
+    #       path: .  
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14.12
+    container_name: postgresql
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=dev-postgres
+      - POSTGRES_PASSWORD=dev-postgres
+      - POSTGRES_DB=awsome_books
+    volumes:
+    - db-data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: pgadmin
+    restart: always
+    ports:
+      - 8888:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin@pgadmin.com
+      PGADMIN_DEFAULT_PASSWORD: pgadmin
+
+volumes:
+  db-data:

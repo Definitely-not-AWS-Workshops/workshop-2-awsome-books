@@ -1,0 +1,32 @@
+#  This workflow will be called in release and rollback workflows
+name: Validate format of semantic version
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "Specify semantic version tag of the Docker image to check."
+        required: true
+        type: string
+
+jobs:
+  validate-version-format:
+    name: Validate semantic version format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+          sparse-checkout-cone-mode: false
+
+      - name: Create path to scripts
+        id: scripts
+        run: |
+          echo "path=./.github/scripts" >> $GITHUB_OUTPUT
+
+      - name: Validate format of semantic version ${{ inputs.version }}
+        run: |
+          chmod +x -R ./.github/scripts
+          ${{ steps.scripts.outputs.path }}/validate-version-format.sh ${{ inputs.version }}

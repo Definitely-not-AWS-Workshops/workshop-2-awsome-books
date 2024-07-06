@@ -1,0 +1,7 @@
+{
+    "isbn": "1234567890",
+    "title": "Example Book Title",
+    "author": "Author Name",
+    "price": 19.99,
+    "publisher": "Example Publisher"
+}

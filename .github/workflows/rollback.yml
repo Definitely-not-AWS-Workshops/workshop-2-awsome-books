@@ -1,0 +1,71 @@
+name: Rollback
+
+on:
+  # Allow manual rollback
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Specify the semantic version to rollback to, in the format "v*.*.*" (e.g., "v0.0.1")
+        type: string
+        required: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  validate-version-format:
+    name: Validate semantic version format
+    uses: ./.github/workflows/wc-validate-version-format.yml
+    with:
+      version: ${{ inputs.version }}
+
+  check-version-exists:
+    name: Check semantic version exists on AWS ECR repository
+    needs: [validate-version-format]
+    runs-on: ubuntu-latest
+    env:
+      ECR_REPOSITORY: ${{ vars.PROJECT }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github
+          sparse-checkout-cone-mode: false
+
+      - name: Set permissions to run scripts
+        run: chmod +x -R ./.github/scripts
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ vars.ROLE_TO_ASSUME }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Check version ${{ inputs.version }} existed in AWS ECR repository ${{ env.ECR_REPOSITORY }}
+        run: ./.github/scripts/check-version-exists.sh ${{ env.ECR_REPOSITORY }} ${{ inputs.version }}
+
+  rollback:
+    name: Rollback
+    needs: [check-version-exists]
+    uses: ./.github/workflows/wc-deploy.yml
+    with:
+      rollback: true
+      aws-region: ${{ vars.AWS_REGION }}
+      role-to-assume: ${{ vars.ROLE_TO_ASSUME }}
+      ecr-repository: ${{ vars.PROJECT }}
+      image-tag: ${{ inputs.version }}
+      task-definition: ${{ vars.PROJECT }}
+      container-name: ${{ vars.PROJECT }}
+      ecs-cluster: ${{ vars.ECS_CLUSTER }}
+      ecs-service: ${{ vars.PROJECT }}
+      codedeploy-application: ${{ vars.CODEDEPLOY_APPLICATION }}
+      codedeploy-application-group: ${{ vars.CODEDEPLOY_APPLICATION_GROUP }}
