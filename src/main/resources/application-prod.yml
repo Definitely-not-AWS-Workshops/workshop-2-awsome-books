@@ -27,15 +27,10 @@ spring:
         initial-interval: 1000 # 1s
         max-interval: 2000 # 2s
         multiplier: 1.1
-  # profiles:
-  #   active: devz
   datasource:
     driver-class-name: com.amazonaws.secretsmanager.sql.AWSSecretsManagerPostgreSQLDriver
-    username: rds!db-7eb08ca8-ebed-4f87-96cd-33ac95b908fa
-    url: jdbc-secretsmanager:postgresql://awsome-books-db-server.cliq64c00zrx.us-east-1.rds.amazonaws.com:5432/awsome_books
-    # driver-class-name: com.amazonaws.secretsmanager.sql.AWSSecretsManagerPostgreSQLDriver
-    # username: <AWS-SECRECTS-MANAGER-NAME>
-    # url: jdbc-secretsmanager:postgresql://<AWS-RDS-DB-URL>:5432/awsome_books
+    username: <YOUR-AWS-SECRECTS-MANAGER-NAME>
+    url: jdbc-secretsmanager:postgresql://<YOUR-AWS-RDS-DB-URL>:5432/awsome_books
     hikari:
       connection-timeout: 2000 #ms
       maximum-pool-size: 5
